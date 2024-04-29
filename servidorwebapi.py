@@ -52,10 +52,22 @@ def insere_aluno():
         sql = 'insert into Alunos(ra, nome, email, media) values(?, ?, ?, ?)'
         #Ler e executar comando de sql puro no bd
         bd.execute(sql,(aluno.ra, aluno.nome, aluno.email, aluno.media,))
+
         conn.commit()
-        return{'success': 'Aluno inserido com sucesso!'}
+
+        return{'success': 'Aluno inserido com sucesso!'}, 200
     except Exception as erro:
         return{'erro':erro}
+
+@Server.route('/home/Delete/<int=id>', methods = ['DELETE'])
+def deleta_aluno(id):
+    try:
+        sql = 'delete from Alunos where id=(?)'
+        bd.execute(sql, (id))
+        conn.commit()
+        return {'success': 'Aluno deletado com sucesso!'}, 200
+    except Exception as erro:
+        return {'erro': erro}, 500
 
 #desconectar do db
 conn.close()
