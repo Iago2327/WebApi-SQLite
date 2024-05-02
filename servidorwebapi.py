@@ -14,7 +14,7 @@ def bd():
                 
     CREATE TABLE if not exists Alunos(
                 
-            id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            id INTEGER NOT NULL PRIMARY KEY autoincrement,
             ra TEXT NOT NULL,
             nome TEXT NOT NULL,
             email TEXT NOT NULL,
@@ -26,8 +26,7 @@ def bd():
 
 #Criando classe para facilitar na manipulação de informação entre servidor e bd
 class Aluno:
-    def __init__(self, id, ra, nome, email, media):
-        self.id = id
+    def __init__(self, ra, nome, email, media):
         self.ra = ra
         self.nome = nome
         self.email = email
@@ -49,7 +48,7 @@ def insere_aluno():
         #cria um objeto na classe aluno(um novo aluno e suas respequitivas informações)
         aluno = Aluno(data['ra'], data['nome'], data['email'], data['media'])
         #Inserido as informações do novo objeto no bd
-        sql = 'insert into Alunos(ra, nome, email, media) values(?, ?, ?, ?)'
+        sql = 'INSERT INTO Alunos(ra, nome, email, media) values(?, ?, ?, ?)'
         #Ler e executar comando de sql puro no bd
         bd.execute(sql,(aluno.ra, aluno.nome, aluno.email, aluno.media,))
 
@@ -59,16 +58,46 @@ def insere_aluno():
     except Exception as erro:
         return{'erro':erro}
 
-@Server.route('/home/Delete/<int=id>', methods = ['DELETE'])
+@Server.route('/home/apagar/<int:id>', methods = ['DELETE'])
 def deleta_aluno(id):
     try:
-        sql = 'delete from Alunos where id=(?)'
+        sql = 'DELETE * FROM Alunos WHERE id=(?)'
         bd.execute(sql, (id))
         conn.commit()
         return {'success': 'Aluno deletado com sucesso!'}, 200
     except Exception as erro:
         return {'erro': erro}, 500
 
-#desconectar do db
-conn.close()
+@Server.route('/home/listar')
+def Listar_Aluno():
+    try:
+        sql = 'SELECT * FROM Alunos'
+        alunos = bd.execute(sql).fetchall()
+        print(alunos)
+        return {"success":alunos}
+    except Exception as erro:
+        return{'erro':erro}, 500
+
+@Server.route('/home/filtro/<int:id>', methods = ["GET"])
+def Filtrar_Aluno(id):
+    try:
+        sql = 'SELECT * FROM Alunos WHERE id=?'
+        alunos = bd.execute(sql, (id)).fetchall()
+        return {"success": alunos}
+    except Exception as erro:
+        return {'erro':erro}, 500
+    
+@Server.route('/home/update/<int:id>', methods = ["PUT"])
+def Atualizar_Alunos():
+    try:
+        data = request.get_json()
+        sql = 'UPDATE Alunos SET nome=?, email=?, media=? WHERE id=?'
+        bd.execute(sql, (data['nome'], data['email'], data['media'], id))
+        conn.commit()
+        return {'success':'Aluno atualizado com sucesso!'}, 200
+    except Exception as erro:
+        return{'erro':erro}, 500
+
+if __name__ == "__main__":
+    Server.run(debug=True, port=1800)
 
